@@ -257,6 +257,85 @@ jobs:
   </div>
 
   <div class="detail-section">
+    <h2>실제 오픈소스의 대표 usage</h2>
+    <p>상상이 아닌, 실제 유명 프로젝트의 워크플로우에서 가져온 사례입니다.</p>
+
+    <div class="callout tip">
+      <strong>먼저 큰 그림:</strong> checkout은 <em>"빈 VM에 내 코드를 복사"</em>하는 <strong>1단계</strong>일 뿐입니다.<br>
+      진짜 자동화는 그 다음 step들 — <code>테스트 실행</code>, <code>빌드 확인</code>, <code>배포</code> — 이고,<br>
+      이걸 <strong>사람이 손으로 하는 대신 push/PR 때마다 GitHub이 자동으로</strong> 해줍니다.
+    </div>
+
+    <div class="diagram">내가 코드를 push / PR 올림
+        │
+        ▼
+GitHub이 빈 VM(러너) 준비
+        │
+        ▼
+<span class="highlight">actions/checkout</span>  ← 내 코드를 VM에 복사 (1단계)
+        │
+        ▼
+그 코드로 실제 작업 실행  ← <span class="highlight">여기가 자동화의 핵심</span>
+  (테스트 / 린트 / 빌드 / 배포 ...)
+        │
+        ▼
+결과를 PR에 ✅ / ❌ 로 표시</div>
+
+    <h3>1. facebook/react — 린트 워크플로우</h3>
+    <p><code>.github/workflows/shared_lint.yml</code>. <code>@v4</code>를 쓰고, <code>permissions: {}</code>로 <strong>모든 권한을 비운</strong> 뒤 checkout하는 최소 권한 패턴이 특징입니다.</p>
+    <pre><code>permissions: {}          # 워크플로우 전체 권한을 비움
+
+jobs:
+  prettier:
+    name: Run prettier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - run: yarn install --frozen-lockfile
+      - run: yarn prettier-check</code></pre>
+    <div class="callout warn">
+      <strong>이걸로 뭘 자동화하나?</strong><br>
+      <strong>언제:</strong> 누군가 PR을 올리거나 main에 push할 때마다 자동 실행.<br>
+      <strong>무슨 일:</strong> checkout으로 코드를 받은 뒤 → 의존성 설치 → <code>yarn prettier-check</code>로 <strong>코드 포맷이 규칙에 맞는지 검사</strong>.<br>
+      <strong>결과:</strong> 포맷이 틀리면 PR에 빨간 ❌가 뜹니다. 즉 <em>"들여쓰기/따옴표 스타일 좀 맞춰주세요"를 사람이 일일이 지적할 필요 없이 로봇이 자동으로 걸러줍니다.</em> react는 기여자가 워낙 많아서, 이런 자동 게이트가 없으면 리뷰어가 스타일만 보다 지칩니다.
+    </div>
+    <div class="callout">
+      출처: <a href="https://github.com/facebook/react/blob/main/.github/workflows/shared_lint.yml" target="_blank" rel="noopener">facebook/react · shared_lint.yml</a>
+    </div>
+
+    <h3>2. microsoft/vscode — Code OSS PR 빌드</h3>
+    <p><code>.github/workflows/pr.yml</code>. <code>@v6</code> 최신 버전을 쓰고, <code>lfs: true</code>로 <strong>Git LFS 파일까지 함께</strong> 받아옵니다. self-hosted 러너에서 실행되는 대규모 프로젝트 사례입니다.</p>
+    <pre><code>permissions:
+  contents: read         # 읽기 전용 최소 권한
+
+jobs:
+  compile:
+    name: Compile &amp; Hygiene
+    runs-on: [ self-hosted, ... ]
+    steps:
+      - name: Checkout microsoft/vscode
+        uses: actions/checkout@v6
+        with:
+          lfs: true        # LFS로 관리되는 대용량 파일도 체크아웃
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc</code></pre>
+    <div class="callout warn">
+      <strong>이걸로 뭘 자동화하나?</strong><br>
+      <strong>언제:</strong> VSCode 저장소에 PR이 올라올 때마다 자동 실행.<br>
+      <strong>무슨 일:</strong> checkout으로 (LFS 대용량 파일 포함) 전체 코드를 받은 뒤 → Node 세팅 → <strong>VSCode 전체를 컴파일하고 hygiene 검사</strong>를 돌립니다.<br>
+      <strong>결과:</strong> 사람 리뷰어가 코드를 보기도 전에, <em>"이 PR을 합치면 빌드가 깨지는가?"를 기계가 먼저 판정</em>합니다. 빌드가 안 되면 병합 자체가 막혀서, 망가진 코드가 main에 들어가는 걸 예방합니다.
+    </div>
+    <div class="callout">
+      출처: <a href="https://github.com/microsoft/vscode/blob/main/.github/workflows/pr.yml" target="_blank" rel="noopener">microsoft/vscode · pr.yml</a>
+    </div>
+  </div>
+
+  <div class="detail-section">
     <h2>이 레포에서 배울 수 있는 것</h2>
 
     <h3>Project Structure</h3>
@@ -299,5 +378,6 @@ jobs:
     GitHub에서 보기
   </a>
 </div>
+<script src="detail-toc.js"></script>
 </body>
 </html>

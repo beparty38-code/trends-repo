@@ -225,9 +225,58 @@ body {
 .diagram .highlight { color: var(--accent); font-weight: 700; }
 .diagram .dim { color: var(--text-dim); }
 
+/* 섹션 anchor 이동 시 상단 여백 확보 */
+.detail-section > h2 { scroll-margin-top: 20px; }
+
+/* ===== 목차(TOC) 오버레이 ===== */
+.toc-toggle {
+  position: fixed; top: 20px; right: 20px; z-index: 50;
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 14px; font-size: 14px; font-weight: 600;
+  cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  transition: background 0.15s, border-color 0.15s;
+}
+.toc-toggle:hover { background: var(--surface-hover); border-color: var(--accent); }
+.toc-toggle.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.toc-toggle-icon { font-size: 15px; line-height: 1; }
+
+.toc-panel {
+  position: fixed; top: 62px; right: 20px; z-index: 49;
+  width: 280px; max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 82px); overflow-y: auto;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  opacity: 0; transform: translateY(-8px);
+  pointer-events: none; transition: opacity 0.15s, transform 0.15s;
+}
+.toc-panel.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+.toc-title {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--text-dim);
+  padding: 4px 8px 8px; border-bottom: 1px solid var(--border); margin-bottom: 6px;
+}
+.toc-list { list-style: none; margin: 0; padding: 0; }
+.toc-link {
+  display: block; padding: 7px 8px; border-radius: 6px;
+  color: var(--text-dim); text-decoration: none;
+  font-size: 13.5px; line-height: 1.4;
+  border-left: 2px solid transparent; transition: background 0.12s, color 0.12s;
+}
+.toc-link:hover { background: var(--surface-hover); color: var(--text); }
+.toc-link.active {
+  color: var(--accent); background: var(--accent-dim);
+  border-left-color: var(--accent); font-weight: 600;
+}
+
 @media (max-width: 480px) {
   .header { padding: 32px 16px 24px; }
   .filters { padding: 0 16px 16px; }
   .grid { padding: 0 16px 48px; grid-template-columns: 1fr; }
   .detail-container { padding: 32px 16px 48px; }
+  .toc-toggle { top: 12px; right: 12px; padding: 7px 12px; }
+  .toc-panel { top: 54px; right: 12px; }
 }
