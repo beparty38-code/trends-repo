@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>agency-agents - Deep Dive</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="detail-container">
+  <a class="detail-back" href="index.html">&larr; Back to list</a>
+  <div class="detail-header">
+    <h1>msitarzewski/agency-agents</h1>
+    <div class="detail-header-meta">
+      <span class="stars">127k stars</span>
+      <span><span class="lang-dot" style="background:#083fa1"></span> Markdown</span>
+      <span class="card-category cat-agent">AI Agent</span>
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <h2>What is it?</h2>
+    <p>각 분야 전문가 역할을 하는 <strong>AI 에이전트 페르소나 컬렉션</strong>입니다. 마크다운 파일로 정의되며, Claude Code, Cursor, Copilot 등 다양한 도구에 설치해 사용합니다.</p>
+  </div>
+
+  <div class="detail-section">
+    <h2>Project Structure</h2>
+    <pre><code>agency-agents/
+├── engineering/          # 35개 에이전트
+├── marketing/            # 44개 에이전트
+├── sales/                # 10개 에이전트
+├── design/               # 9개 에이전트
+├── product/              # 5개 에이전트
+├── project-management/   # 7개 에이전트
+├── testing/              # 테스트 팀
+├── finance/              # 재무
+├── strategy/             # 전략
+├── security/             # 보안
+├── support/              # 지원
+├── specialized/          # 특화 역할
+├── scripts/              # 설치/통합 스크립트
+├── divisions.json        # 부서 메타데이터
+└── tools.json            # 지원 도구 정보</code></pre>
+  </div>
+
+  <div class="detail-section">
+    <h2>Agent Roster (주요 역할)</h2>
+    <table class="arch-table">
+      <tr><th>부서</th><th>수</th><th>주요 역할</th></tr>
+      <tr><td>Engineering</td><td>35</td><td>프론트엔드, 백엔드 아키텍트, AI 엔지니어, DevOps, SRE, 코드 리뷰어</td></tr>
+      <tr><td>Marketing</td><td>44</td><td>SEO, TikTok 전략가, Reddit 빌더, LinkedIn 크리에이터, 팟캐스트</td></tr>
+      <tr><td>Sales</td><td>10</td><td>아웃바운드, 딜 전략가, 영업 엔지니어, 파이프라인 분석가</td></tr>
+      <tr><td>Design</td><td>9</td><td>UI 디자이너, UX 연구원, 브랜드 가디언, 이미지 프롬프트 엔지니어</td></tr>
+      <tr><td>Product</td><td>5</td><td>스프린트 우선순위, 트렌드 연구원, 피드백 종합, PM</td></tr>
+      <tr><td>PM</td><td>7</td><td>스튜디오 프로듀서, 프로젝트 셰퍼드, Jira 관리자</td></tr>
+    </table>
+  </div>
+
+  <div class="detail-section">
+    <h2>Agent Definition Format</h2>
+    <p>각 에이전트는 마크다운 파일(<code>{부서}-{역할}.md</code>)로 정의됩니다:</p>
+    <pre><code># [역할명]
+
+## Identity
+[성격, 전문성 설명]
+
+## Core Responsibilities
+- [책임 1]
+- [책임 2]
+
+## Workflow
+[단계별 프로세스]
+
+## Technical Deliverables
+[코드 예제 및 구현]
+
+## Success Metrics
+[측정 가능한 결과]</code></pre>
+  </div>
+
+  <div class="detail-section">
+    <h2>Installation</h2>
+    <h3>Native App (macOS)</h3>
+    <pre><code>brew install --cask msitarzewski/agency-agents/agency-agents</code></pre>
+    <h3>Claude Code</h3>
+    <pre><code>./scripts/install.sh --tool claude-code
+# 또는 직접 복사
+cp engineering/*.md ~/.claude/agents/</code></pre>
+    <h3>Interactive</h3>
+    <pre><code>./scripts/install.sh                    # 대화형 마법사
+./scripts/install.sh --list teams       # 팀 목록 확인
+./scripts/install.sh --tool cursor      # Cursor용
+./scripts/install.sh --tool copilot     # Copilot용
+./scripts/install.sh --tool gemini-cli  # Gemini용</code></pre>
+  </div>
+
+  <div class="detail-section">
+    <h2>Learn Points</h2>
+    <ul>
+      <li><strong>효과적인 시스템 프롬프트</strong> 작성 기법 (100+ 실전 예시)</li>
+      <li><strong>페르소나 설계</strong> — 성격, 워크플로우, 톤 정의 패턴</li>
+      <li><strong>에이전트 역할 분리</strong> — 부서별 전문화 전략</li>
+      <li>마크다운 기반 <strong>선언적 에이전트 정의</strong> 방식</li>
+      <li><strong>Multi-tool 호환</strong> 설치 스크립트 설계</li>
+    </ul>
+  </div>
+
+  <div class="detail-section">
+    <h2>Supported Tools</h2>
+    <div class="detail-tags">
+      <span class="detail-tag">Claude Code</span>
+      <span class="detail-tag">Cursor</span>
+      <span class="detail-tag">GitHub Copilot</span>
+      <span class="detail-tag">Gemini CLI</span>
+      <span class="detail-tag">Codex</span>
+      <span class="detail-tag">OpenCode</span>
+      <span class="detail-tag">Windsurf</span>
+      <span class="detail-tag">Kimi Code</span>
+      <span class="detail-tag">Aider</span>
+    </div>
+  </div>
+
+  <a class="detail-link" href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">
+    <svg class="gh-icon" viewBox="0 0 16 16"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+    GitHub에서 보기
+  </a>
+</div>
+</body>
+</html>

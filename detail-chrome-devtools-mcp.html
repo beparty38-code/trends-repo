@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>chrome-devtools-mcp - Deep Dive</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="detail-container">
+  <a class="detail-back" href="index.html">&larr; Back to list</a>
+  <div class="detail-header">
+    <h1>ChromeDevTools/chrome-devtools-mcp</h1>
+    <div class="detail-header-meta">
+      <span class="stars">45.6k stars</span>
+      <span><span class="lang-dot" style="background:#3178c6"></span> TypeScript</span>
+      <span class="card-category cat-infra">AI Infra</span>
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <h2>What is it?</h2>
+    <p>AI 코딩 에이전트(Claude, Cursor, Copilot 등)가 <strong>라이브 Chrome 브라우저를 제어하고 검사</strong>할 수 있게 하는 MCP(Model Context Protocol) 서버입니다.</p>
+  </div>
+
+  <div class="detail-section">
+    <h2>Project Structure</h2>
+    <pre><code>chrome-devtools-mcp/
+├── src/                    # 핵심 소스 코드
+├── docs/                   # 도구 참조, CLI, 트러블슈팅
+├── skills/                 # AI 에이전트용 스킬 정의
+├── tests/                  # 테스트 스위트
+├── .claude-plugin/         # Claude 플러그인 설정
+├── .cursor-plugin/         # Cursor 플러그인 설정
+├── .gemini/                # Gemini 설정
+├── rollup.config.mjs       # 번들링 설정
+├── puppeteer.config.cjs    # Puppeteer 설정
+└── package.json</code></pre>
+  </div>
+
+  <div class="detail-section">
+    <h2>MCP Tools (51 tools)</h2>
+    <table class="arch-table">
+      <tr><th>카테고리</th><th>수</th><th>주요 도구</th></tr>
+      <tr><td>Automation</td><td>10</td><td><code>click</code>, <code>fill</code>, <code>fill_form</code>, <code>drag</code>, <code>hover</code>, <code>press_key</code>, <code>type_text</code>, <code>upload_file</code></td></tr>
+      <tr><td>Navigation</td><td>6</td><td><code>navigate_page</code>, <code>new_page</code>, <code>select_page</code>, <code>list_pages</code>, <code>wait_for</code></td></tr>
+      <tr><td>Performance</td><td>3</td><td><code>performance_start_trace</code>, <code>performance_stop_trace</code>, <code>performance_analyze_insight</code></td></tr>
+      <tr><td>Network</td><td>2</td><td><code>list_network_requests</code>, <code>get_network_request</code></td></tr>
+      <tr><td>Debugging</td><td>8</td><td><code>take_screenshot</code>, <code>take_snapshot</code>, <code>evaluate_script</code>, <code>lighthouse_audit</code></td></tr>
+      <tr><td>Memory</td><td>11</td><td><code>take_heapsnapshot</code>, <code>compare_heapsnapshots</code>, <code>get_heapsnapshot_class_nodes</code></td></tr>
+      <tr><td>Extensions</td><td>5</td><td><code>install_extension</code>, <code>list_extensions</code>, <code>reload_extension</code></td></tr>
+      <tr><td>Emulation</td><td>2</td><td><code>emulate</code> (디바이스), <code>resize_page</code></td></tr>
+      <tr><td>3rd Party</td><td>4</td><td><code>execute_3p_developer_tool</code>, <code>list_webmcp_tools</code></td></tr>
+    </table>
+  </div>
+
+  <div class="detail-section">
+    <h2>Installation</h2>
+    <h3>Claude Code</h3>
+    <pre><code>claude mcp add chrome-devtools --scope user npx chrome-devtools-mcp@latest</code></pre>
+    <h3>Universal (MCP JSON config)</h3>
+    <pre><code>{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    }
+  }
+}</code></pre>
+    <h3>Slim Mode (경량)</h3>
+    <pre><code>npx chrome-devtools-mcp@latest --slim --headless</code></pre>
+  </div>
+
+  <div class="detail-section">
+    <h2>Supported Agents</h2>
+    <table class="arch-table">
+      <tr><th>에이전트</th><th>설치 방식</th></tr>
+      <tr><td>Claude Code</td><td>CLI 또는 플러그인</td></tr>
+      <tr><td>Cursor</td><td>설정 UI / 원클릭 버튼</td></tr>
+      <tr><td>VS Code Copilot</td><td>플러그인 (권장)</td></tr>
+      <tr><td>Gemini CLI</td><td><code>gemini mcp add</code></td></tr>
+      <tr><td>Cline</td><td>표준 MCP 설정</td></tr>
+      <tr><td>Antigravity</td><td>URL 지정 연결</td></tr>
+    </table>
+  </div>
+
+  <div class="detail-section">
+    <h2>Learn Points</h2>
+    <ul>
+      <li><strong>MCP(Model Context Protocol)</strong> 서버 구현 방법</li>
+      <li><strong>Chrome DevTools Protocol</strong> 활용 패턴</li>
+      <li>AI 에이전트 ↔ 브라우저 <strong>통합 아키텍처</strong></li>
+      <li><strong>Puppeteer</strong> 기반 브라우저 자동화</li>
+      <li>성능 추적/메모리 분석 등 <strong>DevTools 심화</strong></li>
+    </ul>
+  </div>
+
+  <div class="detail-section">
+    <h2>Tech Stack</h2>
+    <div class="detail-tags">
+      <span class="detail-tag">TypeScript</span>
+      <span class="detail-tag">Node.js LTS</span>
+      <span class="detail-tag">Puppeteer</span>
+      <span class="detail-tag">Rollup</span>
+      <span class="detail-tag">MCP Protocol</span>
+    </div>
+  </div>
+
+  <a class="detail-link" href="https://github.com/ChromeDevTools/chrome-devtools-mcp" target="_blank" rel="noopener">
+    <svg class="gh-icon" viewBox="0 0 16 16"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+    GitHub에서 보기
+  </a>
+</div>
+</body>
+</html>

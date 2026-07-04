@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CubeSandbox - Deep Dive</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="detail-container">
+  <a class="detail-back" href="index.html">&larr; Back to list</a>
+  <div class="detail-header">
+    <h1>TencentCloud/CubeSandbox</h1>
+    <div class="detail-header-meta">
+      <span class="stars">7.2k stars</span>
+      <span><span class="lang-dot" style="background:#dea584"></span> Rust / Go</span>
+      <span class="card-category cat-infra">AI Infra</span>
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <h2>What is it?</h2>
+    <p>LLM이 생성한 코드를 <strong>안전하게 실행</strong>하기 위한 고성능 샌드박스 서비스입니다. KVM 기반 microVM으로 60ms 부팅, 5MB 미만 메모리 오버헤드를 달성합니다.</p>
+  </div>
+
+  <div class="detail-section">
+    <h2>Architecture</h2>
+    <pre><code>CubeSandbox/
+├── CubeAPI/          # REST API 게이트웨이 (Rust, E2B 호환)
+├── CubeMaster/       # 클러스터 오케스트레이터
+├── Cubelet/          # 컴퓨팅 노드 로컬 스케줄링
+├── CubeProxy/        # 리버스 프록시 (E2B 프로토콜 호환)
+├── CubeVS/           # eBPF 기반 가상 스위치
+├── CubeEgress/       # 보안 게이트웨이 (OpenResty)
+├── CubeHypervisor/   # KVM 가상화 계층
+├── CubeShim/         # containerd Shim v2
+├── cubecow/          # Copy-on-Write 스냅샷 엔진
+├── cubelog/          # 로깅 시스템
+├── sdk/              # Python 클라이언트 SDK
+└── web/              # 웹 콘솔 UI</code></pre>
+  </div>
+
+  <div class="detail-section">
+    <h2>Performance Benchmarks</h2>
+    <table class="arch-table">
+      <tr><th>시나리오</th><th>평균</th><th>P95</th><th>P99</th></tr>
+      <tr><td>단일 동시성 부팅</td><td>&lt; 60ms</td><td>-</td><td>-</td></tr>
+      <tr><td>50개 동시 생성</td><td>67ms</td><td>90ms</td><td>137ms</td></tr>
+    </table>
+    <h3>vs Docker vs Traditional VM</h3>
+    <table class="arch-table">
+      <tr><th>메트릭</th><th>Docker</th><th>전통 VM</th><th>CubeSandbox</th></tr>
+      <tr><td>격리 수준</td><td>낮음 (공유 커널)</td><td>높음</td><td style="color:var(--green)">극도로 높음</td></tr>
+      <tr><td>부팅 속도</td><td>~200ms</td><td>수 초</td><td style="color:var(--green)">&lt; 60ms</td></tr>
+      <tr><td>메모리 오버헤드</td><td>낮음</td><td>높음</td><td style="color:var(--green)">&lt; 5MB</td></tr>
+      <tr><td>밀도</td><td>높음</td><td>낮음</td><td style="color:var(--green)">극도로 높음</td></tr>
+    </table>
+  </div>
+
+  <div class="detail-section">
+    <h2>Key Features</h2>
+    <ul>
+      <li><strong>하드웨어 수준 격리</strong> — 각 샌드박스가 자체 Guest OS 커널 보유 (Docker 커널 탈출 불가)</li>
+      <li><strong>E2B SDK 호환</strong> — URL 환경변수 하나만 바꾸면 마이그레이션 완료</li>
+      <li><strong>eBPF 가상 스위치</strong> — 커널 레벨 네트워크 격리</li>
+      <li><strong>자격증명 금고</strong> — API 키가 샌드박스에 진입하지 않음</li>
+      <li><strong>CubeCoW 스냅샷</strong> — 이벤트 레벨 스냅샷, 즉시 복제, 롤백</li>
+      <li><strong>송신 제어</strong> — 도메인 허용 목록, 즉시 차단, 감사 로그</li>
+      <li><strong>웹 콘솔</strong> — 브라우저 기반 시각적 관리</li>
+    </ul>
+  </div>
+
+  <div class="detail-section">
+    <h2>How it Works</h2>
+    <ol class="workflow-steps">
+      <li><strong>RustVMM + KVM</strong>으로 microVM 생성 (각각 자체 커널)</li>
+      <li><strong>eBPF 기반 CubeVS</strong>가 커널 레벨에서 네트워크 격리</li>
+      <li><strong>CubeEgress</strong>가 L7 도메인 필터링 + 자격증명 주입</li>
+      <li><strong>CubeCoW</strong>가 Copy-on-Write 스냅샷으로 상태 관리</li>
+      <li>E2B 호환 REST API로 외부에서 제어</li>
+    </ol>
+  </div>
+
+  <div class="detail-section">
+    <h2>Installation</h2>
+    <p>요구사항: <strong>x86_64 Linux</strong> + <strong>KVM 지원</strong></p>
+    <table class="arch-table">
+      <tr><th>배포 유형</th><th>설명</th><th>권장</th></tr>
+      <tr><td>PVM / 클라우드 VM</td><td>중첩 가상화 불필요</td><td style="color:var(--green)">권장</td></tr>
+      <tr><td>베어메탈</td><td>최고 성능</td><td style="color:var(--green)">권장</td></tr>
+      <tr><td>QEMU VM</td><td>개발/테스트용</td><td>가능 (느림)</td></tr>
+    </table>
+    <p>설정 후 <code>http://&lt;IP&gt;:12088</code>에서 웹 콘솔 접근</p>
+  </div>
+
+  <div class="detail-section">
+    <h2>Learn Points</h2>
+    <ul>
+      <li><strong>경량 가상화(microVM)</strong> 기술 — RustVMM, KVM 내부 구조</li>
+      <li><strong>eBPF</strong> 기반 커널 레벨 네트워킹</li>
+      <li><strong>Rust + Go</strong> 시스템 프로그래밍 실전</li>
+      <li><strong>Copy-on-Write</strong> 스냅샷 메커니즘</li>
+      <li><strong>containerd Shim v2</strong> API 통합</li>
+      <li>E2B 호환 API 설계 전략</li>
+    </ul>
+  </div>
+
+  <div class="detail-section">
+    <h2>Tech Stack</h2>
+    <div class="detail-tags">
+      <span class="detail-tag">Rust (CubeAPI, Master)</span>
+      <span class="detail-tag">Go</span>
+      <span class="detail-tag">KVM</span>
+      <span class="detail-tag">RustVMM</span>
+      <span class="detail-tag">eBPF</span>
+      <span class="detail-tag">OpenResty/Lua</span>
+      <span class="detail-tag">Python SDK</span>
+      <span class="detail-tag">Apache 2.0</span>
+    </div>
+  </div>
+
+  <a class="detail-link" href="https://github.com/TencentCloud/CubeSandbox" target="_blank" rel="noopener">
+    <svg class="gh-icon" viewBox="0 0 16 16"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+    GitHub에서 보기
+  </a>
+</div>
+</body>
+</html>

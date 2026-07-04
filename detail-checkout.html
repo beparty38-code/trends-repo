@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>actions/checkout - Deep Dive</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="detail-container">
+  <a class="detail-back" href="index.html">&larr; Back to list</a>
+  <div class="detail-header">
+    <h1>actions/checkout</h1>
+    <div class="detail-header-meta">
+      <span class="stars">8.3k stars</span>
+      <span><span class="lang-dot" style="background:#3178c6"></span> TypeScript</span>
+      <span class="card-category cat-devops">DevOps</span>
+    </div>
+  </div>
+
+  <!-- ===== GitHub Actions 기초부터 ===== -->
+  <div class="detail-section">
+    <h2>먼저, GitHub Actions란?</h2>
+    <p>GitHub에 내장된 <strong>자동화 도구</strong>입니다. "코드를 push하면 자동으로 테스트 돌려줘", "PR 올리면 빌드 확인해줘" 같은 작업을 자동화합니다.</p>
+
+    <div class="callout">
+      <strong>비유하면:</strong> GitHub Actions = "GitHub 안에 사는 로봇 비서"<br>
+      당신이 규칙(워크플로우)을 정해주면, 이벤트가 발생할 때마다 자동으로 일을 처리합니다.
+    </div>
+
+    <h3>핵심 용어 5가지</h3>
+    <table class="arch-table">
+      <tr><th>용어</th><th>뜻</th><th>비유</th></tr>
+      <tr><td><code>Workflow</code></td><td>자동화 규칙 파일 (.yml)</td><td>레시피 (요리 순서)</td></tr>
+      <tr><td><code>Event</code></td><td>워크플로우를 작동시키는 트리거</td><td>"주문이 들어오면" (push, PR 등)</td></tr>
+      <tr><td><code>Job</code></td><td>하나의 러너에서 실행되는 작업 묶음</td><td>요리사 한 명의 업무</td></tr>
+      <tr><td><code>Step</code></td><td>Job 안의 개별 명령</td><td>요리의 각 단계</td></tr>
+      <tr><td><code>Runner</code></td><td>워크플로우가 실행되는 가상 서버</td><td>주방 (깨끗한 빈 공간)</td></tr>
+    </table>
+  </div>
+
+  <div class="detail-section">
+    <h2>워크플로우 파일 해부</h2>
+    <p>모든 워크플로우는 <code>.github/workflows/</code> 폴더에 YAML 파일로 작성합니다:</p>
+    <pre><code># .github/workflows/ci.yml
+
+name: CI                        # 워크플로우 이름
+
+on: [push, pull_request]        # 언제 실행? push 또는 PR 때
+
+jobs:
+  test:                          # Job 이름
+    runs-on: ubuntu-latest       # 어떤 러너? (Ubuntu VM)
+
+    steps:                       # 실행할 단계들
+      - uses: actions/checkout@v7   # Step 1: 코드 가져오기
+      - run: npm install            # Step 2: 의존성 설치
+      - run: npm test               # Step 3: 테스트 실행</code></pre>
+
+    <div class="callout tip">
+      <strong>Tip:</strong> <code>uses:</code>는 남이 만든 액션을 쓰겠다는 뜻이고, <code>run:</code>은 직접 셸 명령을 실행하겠다는 뜻입니다.
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <h2>왜 checkout이 필요한가?</h2>
+    <p>GitHub Actions의 러너(Runner)는 <strong>완전히 빈 가상머신</strong>입니다. 여러분의 코드가 없습니다!</p>
+
+    <div class="diagram"><span class="dim">GitHub 서버</span>           <span class="dim">Runner (빈 VM)</span>
+┌─────────────┐        ┌─────────────────┐
+│  내 레포     │        │                 │
+│  ├── src/   │        │   (텅 비어있음)   │
+│  ├── test/  │  ───?  │                 │
+│  └── ...    │        │  코드가 없으니    │
+│             │        │  아무것도 못 함   │
+└─────────────┘        └─────────────────┘
+
+        <span class="highlight">actions/checkout 이 하는 일:</span>
+
+┌─────────────┐        ┌─────────────────┐
+│  내 레포     │  git   │  $GITHUB_       │
+│  ├── src/   │ ─fetch→│  WORKSPACE/     │
+│  ├── test/  │  clone │  ├── src/       │
+│  └── ...    │        │  ├── test/      │
+│             │        │  └── ...        │
+└─────────────┘        └─────────────────┘</div>
+
+    <div class="callout warn">
+      <strong>checkout 없이 실행하면?</strong><br>
+      <code>npm install</code> → "package.json이 없습니다" 에러<br>
+      <code>python test.py</code> → "파일을 찾을 수 없습니다" 에러<br>
+      코드 자체가 VM에 없으니까요.
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <h2>checkout이 실제로 하는 일 (내부 동작)</h2>
+    <ol class="workflow-steps">
+      <li><strong>인증 설정</strong> — <code>GITHUB_TOKEN</code>으로 레포에 접근 권한 확보</li>
+      <li><strong>git init + fetch</strong> — 러너에 빈 git 레포 만들고, GitHub에서 코드 가져오기</li>
+      <li><strong>ref 체크아웃</strong> — 트리거된 브랜치/태그/커밋으로 이동 (기본: 이벤트의 SHA)</li>
+      <li><strong>인증 토큰 저장</strong> — 이후 step에서 git push 등을 할 수 있도록 설정</li>
+      <li><strong>서브모듈 처리</strong> — 옵션에 따라 서브모듈도 함께 가져오기</li>
+    </ol>
+
+    <div class="callout tip">
+      <strong>핵심:</strong> 기본적으로 <code>fetch-depth: 1</code>로 <strong>최신 커밋 1개만</strong> 가져옵니다 (shallow clone). 빠르지만, <code>git log</code>로 히스토리를 보려면 <code>fetch-depth: 0</code>이 필요합니다.
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <h2>사용 패턴 모음</h2>
+
+    <h3>1. 기본 — 가장 많이 쓰는 형태</h3>
+    <pre><code>steps:
+  - uses: actions/checkout@v7
+  - run: npm test</code></pre>
+
+    <h3>2. 전체 히스토리가 필요할 때</h3>
+    <p>버전 태깅, changelog 생성, <code>git log</code> 분석 등</p>
+    <pre><code>- uses: actions/checkout@v7
+  with:
+    fetch-depth: 0    # 전체 커밋 히스토리</code></pre>
+
+    <h3>3. 특정 폴더만 가져올 때 (Sparse Checkout)</h3>
+    <p>거대 모노레포에서 필요한 부분만 빠르게</p>
+    <pre><code>- uses: actions/checkout@v7
+  with:
+    sparse-checkout: |
+      .github
+      packages/my-app</code></pre>
+
+    <h3>4. 다른 레포의 코드도 필요할 때</h3>
+    <pre><code># 내 레포
+- uses: actions/checkout@v7
+  with:
+    path: main
+
+# 공용 도구 레포
+- uses: actions/checkout@v7
+  with:
+    repository: my-org/shared-tools
+    path: tools</code></pre>
+
+    <h3>5. PR에서 자동 커밋 push</h3>
+    <p>린트 자동 수정, 포맷팅 등을 자동 커밋</p>
+    <pre><code>- uses: actions/checkout@v7
+  with:
+    ref: ${{ github.head_ref }}    # PR의 브랜치
+- run: npx prettier --write .
+- run: |
+    git config user.name "github-actions[bot]"
+    git config user.email "github-actions[bot]@users.noreply.github.com"
+    git commit -am "style: auto-format" || true
+    git push</code></pre>
+
+    <h3>6. SSH 키로 Private 레포 접근</h3>
+    <pre><code>- uses: actions/checkout@v7
+  with:
+    repository: my-org/private-repo
+    ssh-key: ${{ secrets.DEPLOY_KEY }}</code></pre>
+  </div>
+
+  <div class="detail-section">
+    <h2>주요 설정 옵션</h2>
+    <table class="arch-table">
+      <tr><th>Input</th><th>기본값</th><th>설명</th></tr>
+      <tr><td><code>repository</code></td><td>현재 레포</td><td>체크아웃할 레포 (owner/repo)</td></tr>
+      <tr><td><code>ref</code></td><td>이벤트 ref</td><td>브랜치/태그/SHA 지정</td></tr>
+      <tr><td><code>token</code></td><td><code>github.token</code></td><td>인증 토큰</td></tr>
+      <tr><td><code>ssh-key</code></td><td>-</td><td>SSH 키 인증 (private 레포)</td></tr>
+      <tr><td><code>fetch-depth</code></td><td><code>1</code></td><td>커밋 깊이 (0 = 전체)</td></tr>
+      <tr><td><code>fetch-tags</code></td><td><code>false</code></td><td>태그 포함 여부</td></tr>
+      <tr><td><code>sparse-checkout</code></td><td>-</td><td>특정 경로만 가져오기</td></tr>
+      <tr><td><code>submodules</code></td><td><code>false</code></td><td>서브모듈 처리 (true/recursive)</td></tr>
+      <tr><td><code>lfs</code></td><td><code>false</code></td><td>Git LFS 파일 다운로드</td></tr>
+      <tr><td><code>clean</code></td><td><code>true</code></td><td>기존 파일 정리 (git clean)</td></tr>
+      <tr><td><code>persist-credentials</code></td><td><code>true</code></td><td>이후 step에서 git push 가능</td></tr>
+      <tr><td><code>path</code></td><td><code>.</code></td><td>체크아웃 위치 (멀티 레포 시 사용)</td></tr>
+    </table>
+  </div>
+
+  <div class="detail-section">
+    <h2>보안 설계</h2>
+
+    <h3>pwn request 방지</h3>
+    <p>악의적인 Fork PR이 워크플로우를 변조해 시크릿을 탈취하는 공격을 방지합니다.</p>
+    <div class="callout warn">
+      <strong>기본 동작:</strong> Fork PR의 코드 체크아웃은 <strong>거부</strong>됩니다.<br>
+      <code>allow-unsafe-pr-checkout: true</code>를 명시적으로 설정해야만 허용됩니다.
+    </div>
+
+    <h3>자격증명 보안</h3>
+    <p>v6부터 토큰은 <code>$RUNNER_TEMP</code> 아래 별도 파일에 격리 저장됩니다. 워크플로우가 끝나면 자동 삭제.</p>
+
+    <h3>권장 권한 설정</h3>
+    <pre><code>permissions:
+  contents: read    # 최소 권한 원칙</code></pre>
+  </div>
+
+  <div class="detail-section">
+    <h2>GitHub Actions 실전 예제 모음</h2>
+
+    <h3>Node.js 앱 CI</h3>
+    <pre><code>name: Node CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]    # 여러 Node 버전에서 테스트
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm test</code></pre>
+
+    <h3>Python 린트 + 테스트</h3>
+    <pre><code>name: Python CI
+on: push
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: ruff check .
+      - run: pytest</code></pre>
+
+    <h3>자동 배포 (GitHub Pages)</h3>
+    <pre><code>name: Deploy
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - run: npm ci && npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+      - uses: actions/deploy-pages@v4</code></pre>
+  </div>
+
+  <div class="detail-section">
+    <h2>이 레포에서 배울 수 있는 것</h2>
+
+    <h3>Project Structure</h3>
+    <pre><code>actions/checkout/
+├── src/              # TypeScript 소스 코드 (핵심 로직)
+├── __test__/         # Jest 테스트
+├── adrs/             # Architecture Decision Records
+├── dist/             # 빌드된 배포 파일 (git에 포함!)
+├── action.yml        # 액션 메타데이터 (inputs/outputs 정의)
+└── package.json</code></pre>
+
+    <div class="callout">
+      <strong>특이점:</strong> <code>dist/</code> 폴더가 git에 포함됩니다. GitHub Actions 런타임이 <code>node_modules</code>를 설치하지 않고 바로 실행하기 때문에, 번들된 결과물을 레포에 커밋해야 합니다.
+    </div>
+
+    <h3>Learn Points</h3>
+    <ul>
+      <li><strong>GitHub Actions 액션 개발</strong> — <code>action.yml</code>로 inputs/outputs를 선언하고, TypeScript로 로직 구현</li>
+      <li><strong>Git 내부 동작</strong> — fetch, shallow clone, sparse checkout이 어떻게 동작하는지</li>
+      <li><strong>보안 설계</strong> — pwn request 방지, 자격증명 관리, 최소 권한 원칙</li>
+      <li><strong>ADR 패턴</strong> — 아키텍처 결정을 문서로 남기는 방법</li>
+      <li><strong>@actions/* 패키지</strong> — core, exec, github 등 Actions SDK 활용</li>
+    </ul>
+  </div>
+
+  <div class="detail-section">
+    <h2>Tech Stack</h2>
+    <div class="detail-tags">
+      <span class="detail-tag">TypeScript (ESM)</span>
+      <span class="detail-tag">Node.js 24</span>
+      <span class="detail-tag">@actions/core</span>
+      <span class="detail-tag">@actions/exec</span>
+      <span class="detail-tag">@actions/github</span>
+      <span class="detail-tag">Jest</span>
+    </div>
+  </div>
+
+  <a class="detail-link" href="https://github.com/actions/checkout" target="_blank" rel="noopener">
+    <svg class="gh-icon" viewBox="0 0 16 16"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+    GitHub에서 보기
+  </a>
+</div>
+</body>
+</html>

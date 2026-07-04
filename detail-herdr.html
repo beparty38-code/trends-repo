@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>herdr - Deep Dive</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="detail-container">
+  <a class="detail-back" href="index.html">&larr; Back to list</a>
+  <div class="detail-header">
+    <h1>ogulcancelik/herdr</h1>
+    <div class="detail-header-meta">
+      <span class="stars">10.9k stars</span>
+      <span><span class="lang-dot" style="background:#dea584"></span> Rust</span>
+      <span class="card-category cat-agent">AI Agent</span>
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <h2>What is it?</h2>
+    <p>모든 코딩 에이전트를 <strong>하나의 터미널</strong>에서 실행하고, 누가 막혀있고/작업 중이고/완료됐는지 <strong>한눈에</strong> 볼 수 있게 해주는 에이전트 멀티플렉서입니다.</p>
+  </div>
+
+  <div class="detail-section">
+    <h2>Architecture</h2>
+    <pre><code>herdr/
+├── src/              # 핵심 Rust 소스 코드
+├── tests/            # 단위 테스트
+├── vendor/           # 외부 의존성
+├── docs/next/        # Next.js 기반 문서
+├── website/          # 공식 웹사이트
+├── nix/              # Nix 패키지 설정
+├── workers/plugin-marketplace/  # 플러그인 마켓플레이스
+├── Cargo.toml        # Rust 매니페스트
+└── build.rs          # 빌드 스크립트</code></pre>
+  </div>
+
+  <div class="detail-section">
+    <h2>How it Works</h2>
+    <h3>Server-Client Architecture</h3>
+    <p>백그라운드 서버가 세션을 유지하고, 여러 클라이언트가 접속하는 구조입니다. tmux와 유사하지만 에이전트에 특화되었습니다.</p>
+    <ol class="workflow-steps">
+      <li><code>herdr</code> 실행 → 백그라운드 서버 시작 (또는 기존 세션 연결)</li>
+      <li>워크스페이스/탭/패널 생성 및 관리</li>
+      <li>각 패널에서 코딩 에이전트 실행</li>
+      <li>서버가 세션 유지 → detach해도 에이전트 계속 실행</li>
+      <li>다시 <code>herdr</code> 실행 → 기존 세션에 재연결</li>
+    </ol>
+
+    <h3>Agent Status Tracking</h3>
+    <table class="arch-table">
+      <tr><th>상태</th><th>의미</th></tr>
+      <tr><td style="color:#f85149">● Blocked</td><td>에이전트가 사용자 입력을 기다리는 중</td></tr>
+      <tr><td style="color:#d29922">● Working</td><td>에이전트가 작업 수행 중</td></tr>
+      <tr><td style="color:#58a6ff">● Done</td><td>작업 완료</td></tr>
+      <tr><td style="color:#3fb950">● Idle</td><td>대기 상태</td></tr>
+    </table>
+  </div>
+
+  <div class="detail-section">
+    <h2>Key Features</h2>
+    <ul>
+      <li><strong>진정한 터미널</strong> — 각 에이전트가 시뮬레이션이 아닌 실제 터미널 획득</li>
+      <li><strong>세션 지속성</strong> — 연결 해제해도 백그라운드에서 계속 실행</li>
+      <li><strong>원격 접속</strong> — <code>herdr --remote</code>로 VPS 서버 제어</li>
+      <li><strong>소켓 API</strong> — 프로그래밍 방식으로 herdr 제어 가능</li>
+      <li><strong>플러그인 시스템</strong> — 사용자 정의 확장</li>
+      <li><strong>마우스 네이티브</strong> — 클릭, 드래그, 분할 모두 지원</li>
+      <li><strong>15+ 에이전트 자동 감지</strong> — 프로세스 이름 + 출력 휴리스틱</li>
+    </ul>
+  </div>
+
+  <div class="detail-section">
+    <h2>Installation</h2>
+    <pre><code># Quick install
+curl -fsSL https://herdr.dev/install.sh | sh
+
+# Homebrew
+brew install herdr
+
+# From source
+git clone https://github.com/ogulcancelik/herdr
+cd herdr
+cargo build --release</code></pre>
+  </div>
+
+  <div class="detail-section">
+    <h2>Learn Points</h2>
+    <ul>
+      <li><strong>Rust</strong>로 터미널 멀티플렉서 구현하는 방법</li>
+      <li><strong>PTY(Pseudo Terminal)</strong> 핸들링과 프로세스 관리</li>
+      <li><strong>TUI(Terminal UI)</strong> 개발 패턴</li>
+      <li><strong>Server-Client 분리</strong> 아키텍처 (Unix Socket)</li>
+      <li><strong>상태 머신</strong> 패턴으로 에이전트 라이프사이클 관리</li>
+      <li>단일 바이너리 배포 전략 (~10MB)</li>
+    </ul>
+  </div>
+
+  <div class="detail-section">
+    <h2>Tech Stack</h2>
+    <div class="detail-tags">
+      <span class="detail-tag">Rust 90%</span>
+      <span class="detail-tag">MDX 2%</span>
+      <span class="detail-tag">Python 2%</span>
+      <span class="detail-tag">AGPL-3.0</span>
+      <span class="detail-tag">1,001 commits</span>
+      <span class="detail-tag">643 forks</span>
+    </div>
+  </div>
+
+  <a class="detail-link" href="https://github.com/ogulcancelik/herdr" target="_blank" rel="noopener">
+    <svg class="gh-icon" viewBox="0 0 16 16"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+    GitHub에서 보기
+  </a>
+</div>
+</body>
+</html>

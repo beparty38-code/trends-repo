@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>superpowers - Deep Dive</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="detail-container">
+  <a class="detail-back" href="index.html">&larr; Back to list</a>
+  <div class="detail-header">
+    <h1>obra/superpowers</h1>
+    <div class="detail-header-meta">
+      <span class="stars">246k stars</span>
+      <span><span class="lang-dot" style="background:#89e051"></span> Shell / JavaScript</span>
+      <span class="card-category cat-agent">AI Agent</span>
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <h2>What is it?</h2>
+    <p>코딩 에이전트를 위한 <strong>완전한 소프트웨어 개발 방법론</strong>이자 스킬 프레임워크입니다. 에이전트가 코드를 바로 작성하지 않고, 먼저 목표를 명확히 한 뒤 체계적으로 개발하도록 가이드합니다.</p>
+  </div>
+
+  <div class="detail-section">
+    <h2>Project Structure</h2>
+    <pre><code>superpowers/
+├── skills/                   # 핵심 스킬 라이브러리
+├── .claude-plugin/           # Claude Code 플러그인
+├── .cursor-plugin/           # Cursor 플러그인
+├── .codex-plugin/            # Codex 플러그인
+├── .kimi-plugin/             # Kimi Code 플러그인
+├── .agents/plugins/          # 에이전트별 플러그인 설정
+├── hooks/                    # Git 훅
+├── tests/                    # 테스트 스위트
+├── docs/                     # 문서
+├── CLAUDE.md / AGENTS.md     # 플랫폼별 가이드
+└── scripts/                  # 유틸리티 스크립트</code></pre>
+  </div>
+
+  <div class="detail-section">
+    <h2>Core Workflow (7 Steps)</h2>
+    <p>에이전트가 작업을 시작하면 자동으로 이 워크플로우를 따릅니다:</p>
+    <ol class="workflow-steps">
+      <li><strong>brainstorming</strong> — 소크라테스식 설계 정제. 바로 코딩하지 않고 목표부터 정리</li>
+      <li><strong>using-git-worktrees</strong> — 격리된 개발 워크스페이스 생성 (메인 브랜치 안전)</li>
+      <li><strong>writing-plans</strong> — 2~5분 단위 작업 계획 수립 ("주니어 엔지니어가 이해할 수준")</li>
+      <li><strong>subagent-driven-development</strong> — 하위 에이전트 병렬 실행 + 2단계 검토</li>
+      <li><strong>test-driven-development</strong> — RED → GREEN → REFACTOR 순환 강제</li>
+      <li><strong>requesting-code-review</strong> — 계획 대비 코드 검토</li>
+      <li><strong>finishing-a-development-branch</strong> — 병합/PR 결정</li>
+    </ol>
+  </div>
+
+  <div class="detail-section">
+    <h2>All Skills</h2>
+    <table class="arch-table">
+      <tr><th>카테고리</th><th>스킬</th><th>설명</th></tr>
+      <tr><td rowspan="2">Testing</td><td><code>test-driven-development</code></td><td>RED-GREEN-REFACTOR 순환</td></tr>
+      <tr><td><code>verification-before-completion</code></td><td>수정 사항 확인</td></tr>
+      <tr><td>Debugging</td><td><code>systematic-debugging</code></td><td>4단계 근본원인 분석 프로세스</td></tr>
+      <tr><td rowspan="5">Collaboration</td><td><code>dispatching-parallel-agents</code></td><td>동시 하위 에이전트 실행</td></tr>
+      <tr><td><code>subagent-driven-development</code></td><td>2단계 검토 (사양준수 → 품질)</td></tr>
+      <tr><td><code>requesting-code-review</code></td><td>사전 검토 체크리스트</td></tr>
+      <tr><td><code>receiving-code-review</code></td><td>피드백 응답 처리</td></tr>
+      <tr><td><code>executing-plans</code></td><td>검사점 포함 배치 실행</td></tr>
+      <tr><td rowspan="2">Meta</td><td><code>writing-skills</code></td><td>새 스킬 직접 작성</td></tr>
+      <tr><td><code>using-superpowers</code></td><td>시스템 소개/가이드</td></tr>
+    </table>
+  </div>
+
+  <div class="detail-section">
+    <h2>Installation</h2>
+    <h3>Claude Code</h3>
+    <pre><code>/plugin install superpowers@claude-plugins-official</code></pre>
+    <h3>Cursor</h3>
+    <pre><code>/add-plugin superpowers</code></pre>
+    <h3>Codex CLI / Antigravity</h3>
+    <pre><code>agy plugin install https://github.com/obra/superpowers</code></pre>
+  </div>
+
+  <div class="detail-section">
+    <h2>Learn Points</h2>
+    <ul>
+      <li>AI 에이전트 개발 방법론을 <strong>시스템화</strong>하는 방법</li>
+      <li>스킬/프롬프트 프레임워크의 <strong>아키텍처 패턴</strong></li>
+      <li><strong>2단계 검증</strong>: 사양 준수 → 코드 품질 순서로 검토</li>
+      <li><strong>Git Worktree</strong> 기반 격리 개발 전략</li>
+      <li>TDD와 AI 에이전트의 결합 방식</li>
+    </ul>
+  </div>
+
+  <div class="detail-section">
+    <h2>Tech Stack</h2>
+    <div class="detail-tags">
+      <span class="detail-tag">Shell 54%</span>
+      <span class="detail-tag">JavaScript 39%</span>
+      <span class="detail-tag">TypeScript 2.5%</span>
+      <span class="detail-tag">MIT License</span>
+      <span class="detail-tag">628 commits</span>
+    </div>
+  </div>
+
+  <a class="detail-link" href="https://github.com/obra/superpowers" target="_blank" rel="noopener">
+    <svg class="gh-icon" viewBox="0 0 16 16"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+    GitHub에서 보기
+  </a>
+</div>
+</body>
+</html>
